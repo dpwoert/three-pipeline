@@ -40,7 +40,7 @@ var startParticles = function(){
 	//track mouse
 	var cursor = new THREE.Vector2(250,250);
 	document.onmousemove = function(e){
-		cursor = cursor.set(e.pageX, e.pageY);
+		cursor = cursor.set(e.pageX, 512 - e.pageY);
 	};
 
 	//space bar to reset
