@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Game of Life - DPWOERT.COM</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link rel="stylesheet" type="text/css" href="style.css"></link>
+
+		<!-- THREE -->
+		<script src="../../bower_components/threejs/build/three.min.js"></script>
+
+		<!-- render pipeline library -->
+		<script src="../../src/shader-step.js"></script>
+		<script src="../../src/render-pipeline.js"></script>
+
+		<!-- demo javascript -->
+		<script src="demo.js"></script>
+
+		<!-- shader - simple vertex shader -->
+		<script id="simpleVertex" type="x-shader/x-vertex">
+
+			varying vec2 vUv;
+
+			void main() {
+
+				vUv = uv;
+				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+			}
+
+		</script>
+
+		<!-- shader - copy/save to screen -->
+		<script id="copyFragment" type="x-shader/x-vertex">
+
+			uniform sampler2D texData;
+			varying vec2 vUv;
+
+			void main() {
+
+				vec4 texel = texture2D( texData, vUv );
+				gl_FragColor = 1.0 * texel;
+
+			}
+
+
+		</script>
+
+		<!-- shader - game of life rules -->
+		<script id="gameFragment" type="x-shader/x-fragment">
+
+			uniform sampler2D texData;
+			uniform float scale;
+
+			varying vec2 vUv;
+
+			uniform vec2 mouse;
+			uniform vec2 u_resolution;
+
+			float readPosition(vec2 offset) {
+				return texture2D(texData, (vUv.xy + (offset.xy / u_resolution)) ).r;
+			}
+
+			void main() {
+
+				int sum = int(readPosition( vec2(-1.0, -1.0) ) +
+						      readPosition( vec2(-1.0,  0.0) ) +
+						      readPosition( vec2(-1.0,  1.0) ) +
+						      readPosition( vec2( 0.0, -1.0) ) +
+						      readPosition( vec2( 0.0,  1.0) ) +
+						      readPosition( vec2( 1.0, -1.0) ) +
+						      readPosition( vec2( 1.0,  0.0) ) +
+						      readPosition( vec2( 1.0,  1.0) ));
+
+				int current = int(texture2D(texData, vUv).r);
+
+				if(sum == 3){
+					gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+				}
+				else if(sum == 2 && current == 1){
+					gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+				}
+				else{
+					gl_FragColor = vec4(0.0,0.0,0.0,1.0);
+				}
+
+				if (length(gl_FragCoord.xy - mouse) < 5.0){
+					gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+				}
+
+			}
+
+		</script>
+
+	</head>
+
+	<body>
+
+		<div id="canvas"></div>
+
+	</body>
+
+</html>
