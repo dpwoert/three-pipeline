@@ -186,12 +186,23 @@ THREE.ShaderStep = function(width, height){
 	 * @param {Number} width
 	 * @param {Number} height
 	 */
-	this.setSize = function(width, height){
+	this.setSize = function(_width, _height){
 
+		var oldBuffer1 = buffer1;
+		var oldBuffer2 = buffer2;
+
+		width = _width;
+		height = _height;
+
+		//cloning of buffers, and set new size
 		buffer1 = buffer1.clone();
 		buffer1.width = width;
 		buffer1.height = height;
 		buffer2 = buffer1.clone();
+
+		//dispose old buffers
+		oldBuffer1.dispose();
+		oldBuffer2.dispose();
 
 		this.writeBuffer = buffer1;
 		this.readBuffer = buffer2;
