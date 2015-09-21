@@ -46,13 +46,13 @@ var startParticles = function(){
 	//space bar to reset
 	document.body.onkeyup = function(e){
 
-	    if(e.keyCode == 32){
+		if(e.keyCode == 32){
 
 			game.import(function(x,y){
 				return Math.random() > 0.5 ? [0,0,0] : [255,255,255];
 			});
 
-	    }
+		}
 
 	};
 
