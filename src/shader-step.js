@@ -76,9 +76,9 @@ THREE.ShaderStep = function(width, height){
 	 */
 	this.setting = function(name, type, value){
 
-		var uniforms = mesh ? mesh.material.uniforms : this.uniforms;
+		// var uniforms = mesh ? mesh.material.uniforms : this.uniforms;
 
-		uniforms[name] = {
+		this.uniforms[name] = {
 			'type': type,
 			'value': value
 		};
@@ -270,6 +270,7 @@ THREE.ShaderStep = function(width, height){
 	 * @param {Boolean} convert - Convert to pixel array
 	 */
 	this.export = function(convert){
+
 		convert = convert || true;
 
 		//don't convert, just pass buffer
@@ -336,22 +337,22 @@ THREE.ShaderStep = function(width, height){
 	this.render = function(delta, previousStep){
 
 		//use correct readBuffer
-		mesh.material.uniforms[ this.textureId ].value = this.readBuffer;
+		this.uniforms[ this.textureId ].value = this.readBuffer;
 
 		//send previous step to shader
 		if(pipe){
-			mesh.material.uniforms[ this.textureId ].value = previousStep;
+			this.uniforms[ this.textureId ].value = previousStep;
 		}
 
 		//start image?
 		if(startImage){
 			startImage = new THREE.Texture(startImage);
 			startImage.needsUpdate = true;
-			mesh.material.uniforms[ this.textureId ].value = startImage;
+			this.uniforms[ this.textureId ].value = startImage;
 		}
 
 		//update time
-		mesh.material.uniforms.u_time.value += 0.05;
+		this.uniforms.u_time.value += 0.05;
 
 		//render
 		if(renderToScreen){
