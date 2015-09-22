@@ -123,6 +123,7 @@ THREE.renderPipeline = function(renderer){
 
 			if(list[i].process.runOnce){
 				list[i].process.active = false;
+				list[i].process.runOnce = false;
 			}
 
 		}
