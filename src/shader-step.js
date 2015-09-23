@@ -18,6 +18,7 @@ THREE.ShaderStep = function(width, height){
 	var camera = new THREE.OrthographicCamera( -1, 1, 1, -1, 0, 1 );
 	var geom = new THREE.PlaneGeometry( 2, 2 );
 	var scene = new THREE.Scene();
+	var customMesh = THREE.Mesh;
 	var startImage, mesh, renderToScreen, pipe;
 
 	this.process = {
@@ -44,6 +45,17 @@ THREE.ShaderStep = function(width, height){
 	 */
 	this.geometry = function(geo){
 		geom = geo;
+		this.CUSTOMGEOM = true;
+		return this;
+	};
+
+	/**
+	 * Set mesh creation function
+	 * @param {function} build - Function to build mesh
+	 * @return {this} - Chainable
+	 */
+	this.mesh = function(build){
+		customMesh = build || THREE.Mesh;
 		return this;
 	};
 
@@ -75,8 +87,6 @@ THREE.ShaderStep = function(width, height){
 	 * @return {this} - Chainable
 	 */
 	this.setting = function(name, type, value){
-
-		// var uniforms = mesh ? mesh.material.uniforms : this.uniforms;
 
 		this.uniforms[name] = {
 			'type': type,
@@ -147,10 +157,6 @@ THREE.ShaderStep = function(width, height){
 			geom = new THREE.PlaneGeometry( 2, 2 )
 		}
 
-		//create geometry
-		mesh = new THREE.Mesh( geom , null );
-		scene.add( mesh );
-
 		//link to self
 		this.uniforms[this.textureId] = {
 			'type': 't',
@@ -168,13 +174,17 @@ THREE.ShaderStep = function(width, height){
 		};
 
 		//create shader
-		mesh.material = new THREE.ShaderMaterial({
+		var material = new THREE.ShaderMaterial({
 
-		  uniforms: this.uniforms,
-		  vertexShader: this.vertexShader,
-		  fragmentShader: this.fragmentShader
+			uniforms: this.uniforms,
+			vertexShader: this.vertexShader,
+			fragmentShader: this.fragmentShader
 
 		});
+
+		//create geometry
+		mesh = new customMesh( geom , material );
+		scene.add( mesh );
 
 		//save reference to renderer
 		renderer = _renderer;
