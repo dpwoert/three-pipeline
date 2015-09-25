@@ -141,21 +141,29 @@
 
 			uniform sampler2D texData;
 			uniform sampler2D texPerlin;
+			uniform sampler2D texPos;
 			varying vec2 vUv;
 
 			void main() {
 
 				vec2 current = texture2D( texData, vUv ).xy;
-				vec2 force = texture2D( texPerlin, vUv ).xy;
+				vec2 pos = texture2D( texPos, vUv ).xy;
+				vec2 force = texture2D( texPerlin, pos ).xy;
+
+				vec2 applied = current - 0.5;
 
 				//apply drag
-				current = current * 0.9;
+				applied = applied * 0.9;
+
+				//force to real word values
+				force = (force - 0.5) * 0.5;
 
 				//apply force
-				current = current + (force * 0.02);
+				applied = applied + force;
+				applied = applied + 0.5;
 
 				//save force
-				gl_FragColor = vec4(current, 0.0, 1.0);
+				gl_FragColor = vec4(applied, 0.0, 1.0);
 
 			}
 
@@ -169,28 +177,21 @@
 
 			uniform vec2 u_resolution;
 
-			const float BASE = 255.0;
-			const float scale = 512.0;
-			const float OFFSET = BASE * BASE / 2.0;
-
-			vec2 encode(float value) {
-				value = value * scale + OFFSET;
-				float x = mod(value, BASE);
-				float y = floor(value / BASE);
-				return vec2(x, y) / BASE;
-			}
-
-			float decode(vec2 channels) {
-				return (dot(channels, vec2(BASE, BASE * BASE)) - OFFSET) / scale;
-			}
-
 			void main() {
 
 				vec4 current = texture2D( texData, vUv );
-				vec2 velocity = texture2D( texVelocity, vUv ).xy;
+				vec2 velocity = texture2D( texVelocity, current.xy ).xy;
+
+				// velocity = velocity * 2.0 - 1.0;
+				velocity = (velocity - 0.5) * 0.1;
 
 				//apply velocity
-				vec4 newPos = current + vec4(velocity * 0.02, 0.0, 0.0);
+				vec4 newPos = current + vec4(velocity, 0.0, 0.0);
+
+				//reborn when dead
+				if(length(velocity) < 0.001){
+					newPos = vec4(0.5, 0.5, 0.0, 1.0);
+				}
 
 				gl_FragColor = newPos;
 
@@ -201,26 +202,19 @@
 		<script id="renderVertex" type="x-shader/x-vertex">
 
 			uniform sampler2D texPosition;
+			uniform vec2 u_resolution;
 
-			const float BASE = 255.0;
-			const float OFFSET = BASE * BASE / 2.0;
-
-			float decode(vec2 channels, float scale) {
-				return (dot(channels, vec2(BASE, BASE * BASE)) - OFFSET) / scale;
-			}
+			varying vec2 v_pos;
 
 			void main() {
 
 				vec4 newPos = texture2D(texPosition, position.xy);
-				float x = decode(newPos.rg, 512.0);
-				float y = decode(newPos.ba, 512.0);
 
-				vec3 pos = vec3(x, y, 0.0);
+				// gl_Position = projectionMatrix * modelViewMatrix * newPos;
+				gl_Position = newPos * 512.0 - 256.0;
+				gl_PointSize = 1.0;
 
-				pos = newPos.xyz - 1.0;
-
-				gl_Position = projectionMatrix * modelViewMatrix * vec4( pos, 1.0 );
-				gl_PointSize = 5.0;
+				v_pos = gl_Position.xy;
 
 			}
 
@@ -229,11 +223,14 @@
 		<script id="renderFragment" type="x-shader/x-vertex">
 
 			uniform sampler2D texPosition;
+			uniform sampler2D texVelocity;
+
+			varying vec2 v_pos;
 
 			void main() {
 
-				// gl_FragColor = texture2D( texPosition, vUv );
-				gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+				vec4 color = texture2D( texVelocity, v_pos / 512.0 );
+				gl_FragColor = vec4(0.0, color.x, color.y, 1.0);
 
 			}
 

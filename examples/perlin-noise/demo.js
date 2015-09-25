@@ -67,23 +67,28 @@ var startParticles = function(){
 	//velocity
 	velocity
 		.link(perlin, 'texPerlin')
+		.link(position, 'texPos')
+		.import(function(){
+			return [127.5, 127.5, 0, 255];
+		})
 		.shader('vertex', document.getElementById('simpleVertex').textContent )
 		.shader('fragment', document.getElementById('velocityFragment').textContent )
 
 	//position
 	position
-		.link(perlin, 'texVelocity')
+		.link(velocity, 'texVelocity')
 		.import(function(x,y){
-			var x = encode(x, 512);
-			var y = encode(y, 512);
+			// var x = encode(x, 512);
+			// var y = encode(y, 512);
 			// return [x[0], x[1], y[0], y[1]];
-			return [x/512 * 255, y/512 * 255, 0, 255];
+			return [(x/512) * 255, (y/512) * 255, 0, 255];
 		})
 		.shader('vertex', document.getElementById('simpleVertex').textContent )
 		.shader('fragment', document.getElementById('positionFragment').textContent )
 
 	render
 		.link(position, 'texPosition')
+		.link(velocity, 'texVelocity')
 		.geometry(geometry)
 		.mesh(THREE.PointCloud)
 		.shader('vertex', document.getElementById('renderVertex').textContent )
