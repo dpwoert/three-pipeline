@@ -142,6 +142,8 @@
 			uniform sampler2D texData;
 			uniform sampler2D texPerlin;
 			uniform sampler2D texPos;
+			uniform float initial;
+
 			varying vec2 vUv;
 
 			void main() {
@@ -156,7 +158,7 @@
 				applied = applied * 0.9;
 
 				//force to real word values
-				force = (force - 0.5) * 0.5;
+				force = (force - 0.5) * 0.1;
 
 				//apply force
 				applied = applied + force;
@@ -190,7 +192,7 @@
 
 				//reborn when dead
 				if(length(velocity) < 0.001){
-					newPos = vec4(0.5, 0.5, 0.0, 1.0);
+					// newPos = vec4(0.5, 0.5, 0.0, 1.0);
 				}
 
 				gl_FragColor = newPos;
@@ -230,7 +232,7 @@
 			void main() {
 
 				vec4 color = texture2D( texVelocity, v_pos / 512.0 );
-				gl_FragColor = vec4(0.0, color.x, color.y, 1.0);
+				gl_FragColor = vec4(1.0, color.x, color.y, 1.0);
 
 			}
 

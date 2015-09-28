@@ -9,7 +9,11 @@ THREE.ShaderStep = function(width, height){
 	this.fragmentShader = '';
 
 	//create swap buffers
-	var buffer1 = new THREE.WebGLRenderTarget(width, height);
+	var buffer1 = new THREE.WebGLRenderTarget(width, height, {
+		minFilter: THREE.NearestFilter,
+		magFilter: THREE.NearestFilter,
+		type: THREE.FloatType
+	});
 	var buffer2 = buffer1.clone();
 	this.writeBuffer = buffer1;
 	this.readBuffer = buffer2;
@@ -88,10 +92,20 @@ THREE.ShaderStep = function(width, height){
 	 */
 	this.setting = function(name, type, value){
 
-		this.uniforms[name] = {
-			'type': type,
-			'value': value
-		};
+		if(this.uniforms[name]){
+
+			//change value
+			this.uniforms[name].value = value;
+
+		} else {
+
+			//add uniform
+			this.uniforms[name] = {
+				'type': type,
+				'value': value
+			};
+
+		}
 
 		return this;
 

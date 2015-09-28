@@ -71,6 +71,7 @@ var startParticles = function(){
 		.import(function(){
 			return [127.5, 127.5, 0, 255];
 		})
+		.setting('initial', 'f', 1.0)
 		.shader('vertex', document.getElementById('simpleVertex').textContent )
 		.shader('fragment', document.getElementById('velocityFragment').textContent )
 
@@ -121,6 +122,10 @@ var startParticles = function(){
 		.pipe('render', render)
 		.pipe('save', copy)
 		.start();
+
+	window.setTimeout(function(){
+		velocity.setting('initial', 'f', 0.0);
+	})
 
 };
 
