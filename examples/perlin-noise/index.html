@@ -54,6 +54,7 @@
 
 			uniform vec2 u_resolution;
 			uniform float random;
+			uniform float scale;
 
 			//
 			// Description : Array and textureless GLSL 2D simplex noise function.
@@ -129,8 +130,8 @@
 
 			void main() {
 
-				float n = snoise( vUv * 12.0 + (12.0*random) );
-				float n2 = snoise( vUv * 12.0 );
+				float n = snoise( vUv * scale + (scale*random) );
+				float n2 = snoise( vUv * scale );
   				gl_FragColor = vec4(0.5 + 0.5 * n, 0.5 + 0.5 * n2, 0.0, 1.0);
 
 			}
@@ -175,9 +176,11 @@
 
 			uniform sampler2D texData;
 			uniform sampler2D texVelocity;
-			varying vec2 vUv;
-
+			uniform sampler2D texPerlin;
 			uniform vec2 u_resolution;
+			uniform float speed;
+
+			varying vec2 vUv;
 
 			void main() {
 
@@ -185,14 +188,18 @@
 				vec2 velocity = texture2D( texVelocity, current.xy ).xy;
 
 				// velocity = velocity * 2.0 - 1.0;
-				velocity = (velocity - 0.5) * 0.1;
+				velocity = (velocity - 0.5) * (1.0 / 512.0) * speed;
 
 				//apply velocity
 				vec4 newPos = current + vec4(velocity, 0.0, 0.0);
 
 				//reborn when dead
 				if(length(velocity) < 0.001){
-					// newPos = vec4(0.5, 0.5, 0.0, 1.0);
+					newPos = texture2D( texPerlin, vUv );
+				}
+
+				if( newPos.x > 1.0 || newPos.x < 0.0 || newPos.y > 0.0 || newPos.y < 0.0 ){
+					// newPos = texture2D( texPerlin, vUv );
 				}
 
 				gl_FragColor = newPos;
@@ -232,7 +239,7 @@
 			void main() {
 
 				vec4 color = texture2D( texVelocity, v_pos / 512.0 );
-				gl_FragColor = vec4(1.0, color.x, color.y, 1.0);
+				gl_FragColor = vec4((length(color) / 2.0), 0.0, 0.0, 0.1);
 
 			}
 

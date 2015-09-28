@@ -60,6 +60,7 @@ var startParticles = function(){
 	//perlin noise as force field
 	perlin
 		.setting('random', 'f', Math.random())
+		.setting('scale', 'f', 2)
 		.shader('vertex', document.getElementById('simpleVertex').textContent )
 		.shader('fragment', document.getElementById('perlinFragment').textContent )
 		.runOnce();
@@ -71,19 +72,17 @@ var startParticles = function(){
 		.import(function(){
 			return [127.5, 127.5, 0, 255];
 		})
-		.setting('initial', 'f', 1.0)
 		.shader('vertex', document.getElementById('simpleVertex').textContent )
 		.shader('fragment', document.getElementById('velocityFragment').textContent )
 
 	//position
 	position
 		.link(velocity, 'texVelocity')
+		.link(perlin, 'texPerlin')
 		.import(function(x,y){
-			// var x = encode(x, 512);
-			// var y = encode(y, 512);
-			// return [x[0], x[1], y[0], y[1]];
 			return [(x/512) * 255, (y/512) * 255, 0, 255];
 		})
+		.setting('speed','f', 3.0)
 		.shader('vertex', document.getElementById('simpleVertex').textContent )
 		.shader('fragment', document.getElementById('positionFragment').textContent )
 
@@ -122,10 +121,6 @@ var startParticles = function(){
 		.pipe('render', render)
 		.pipe('save', copy)
 		.start();
-
-	window.setTimeout(function(){
-		velocity.setting('initial', 'f', 0.0);
-	})
 
 };
 
