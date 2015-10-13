@@ -1,27 +1,10 @@
-var BASE = 256;
-var encode = function(value, scale) {
-    var b = BASE;
-    value = value * scale + b * b / 2;
-    var pair = [
-        Math.floor((value % b) / b * 255),
-        Math.floor(Math.floor(value / b) / b * 255)
-    ];
-    return pair;
-}
-
-var decode = function(pair, scale) {
-    var b = BASE;
-    return (((pair[0] / 255) * b +
-             (pair[1] / 255) * b * b) - b * b / 2) / scale;
-}
-
 var startParticles = function(){
 
 	var width = window.innerWidth;
 	var height = window.innerHeight;
 
-	width = 512;
-	height = 512;
+	width = window.innerWidth;
+	height = window.innerHeight;
 
 	var renderer = new THREE.WebGLRenderer( { antialias: true } );
 	renderer.setClearColor( 0x000000, 1 );
@@ -36,17 +19,23 @@ var startParticles = function(){
 	var perlin = new THREE.ShaderStep(512, 512);
 	var velocity = new THREE.ShaderStep(512, 512);
 	var position = new THREE.ShaderStep(512, 512);
-	var render = new THREE.ShaderStep(512, 512);
-	var copy = new THREE.ShaderStep(512, 512);
+	var render = new THREE.ShaderStep(width, height);
+	var copy = new THREE.ShaderStep(width, height);
 
 	//setup scene
 	var scene = new THREE.Scene();
-	camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 1000 );
+	camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 0, 1 );
+
+	// create controls
+	controls = new THREE.OrbitControls( render._camera, renderer.domElement );
+	controls.enableDamping = true;
+	controls.dampingFactor = 0.25;
+	controls.enableZoom = true;
 
 	//create particles
 	var size = width;
 	var geometry = new THREE.BufferGeometry();
-	var pos = new Float32Array(size * size * 3);
+	var pos = new Float32Array(512 * 512 * 3);
 	for (var x=0; x<size; x++){
 		for (var y=0; y<size; y++) {
 			var idx = x + y * size;
@@ -60,7 +49,7 @@ var startParticles = function(){
 	//perlin noise as force field
 	perlin
 		.setting('random', 'f', Math.random())
-		.setting('scale', 'f', 2)
+		.setting('scale', 'f', 2 )
 		.shader('vertex', document.getElementById('simpleVertex').textContent )
 		.shader('fragment', document.getElementById('perlinFragment').textContent )
 		.runOnce();
@@ -82,11 +71,14 @@ var startParticles = function(){
 		.import(function(x,y){
 			return [(x/512) * 255, (y/512) * 255, 0, 255];
 		})
-		.setting('speed','f', 3.0)
+		.setting('speed','f', 2.0)
 		.shader('vertex', document.getElementById('simpleVertex').textContent )
 		.shader('fragment', document.getElementById('positionFragment').textContent )
 
+	// position.camera = camera;
+
 	render
+		// .camera(camera)
 		.link(position, 'texPosition')
 		.link(velocity, 'texVelocity')
 		.geometry(geometry)
@@ -115,12 +107,16 @@ var startParticles = function(){
 
 	//make pipeline
 	renderManager
+		.pipe('controls', controls.update)
 		.pipe('perlinShader', perlin)
 		.pipe('velocity', velocity)
 		.pipe('position', position)
 		.pipe('render', render)
 		.pipe('save', copy)
 		.start();
+
+	window.CAMERA = position.camera;
+	console.log(position)
 
 };
 

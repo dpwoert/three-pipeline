@@ -25,6 +25,8 @@ THREE.ShaderStep = function(width, height){
 	var customMesh = THREE.Mesh;
 	var startImage, mesh, renderToScreen, pipe;
 
+	this._camera = camera;
+
 	this.process = {
 		active: true,
 		runOnce: false
@@ -39,6 +41,11 @@ THREE.ShaderStep = function(width, height){
 		buffer1 = renderTarget.clone();
 		buffer2 = buffer1.clone();
 
+		return this;
+	};
+
+	this.camera = function(_camera){
+		camera = _camera;
 		return this;
 	};
 
@@ -186,6 +193,8 @@ THREE.ShaderStep = function(width, height){
 			'type': 'f',
 			'value': 0.0
 		};
+
+		console.log(this.uniforms);
 
 		//create shader
 		var material = new THREE.ShaderMaterial({
