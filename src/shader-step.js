@@ -19,13 +19,15 @@ THREE.ShaderStep = function(width, height){
 	this.readBuffer = buffer2;
 
 	//create scene variables
-	var camera = new THREE.OrthographicCamera( -1, 1, 1, -1, 0, 1 );
-	var geom = new THREE.PlaneGeometry( 2, 2 );
+	var camera, geom, startImage, mesh, renderToScreen, pipe;
 	var scene = new THREE.Scene();
 	var customMesh = THREE.Mesh;
-	var startImage, mesh, renderToScreen, pipe;
 
-	this._camera = camera;
+	this.public = {
+		camera: camera,
+		geometry: geom,
+		mesh: mesh
+	};
 
 	this.process = {
 		active: true,
@@ -173,10 +175,9 @@ THREE.ShaderStep = function(width, height){
 	 */
 	this.create = function(_renderer){
 
-		//create material
-		if(!geom){
-			geom = new THREE.PlaneGeometry( 2, 2 )
-		}
+		//create assets when needed
+		geom = geom || new THREE.PlaneBufferGeometry( 2, 2 )
+		camera = camera || new THREE.OrthographicCamera( -1, 1, 1, -1, 0, 1 );
 
 		//link to self
 		this.uniforms[this.textureId] = {
@@ -194,14 +195,13 @@ THREE.ShaderStep = function(width, height){
 			'value': 0.0
 		};
 
-		console.log(this.uniforms);
-
 		//create shader
 		var material = new THREE.ShaderMaterial({
 
 			uniforms: this.uniforms,
 			vertexShader: this.vertexShader,
-			fragmentShader: this.fragmentShader
+			fragmentShader: this.fragmentShader,
+			side: THREE.DoubleSide
 
 		});
 
@@ -211,6 +211,8 @@ THREE.ShaderStep = function(width, height){
 
 		//save reference to renderer
 		renderer = _renderer;
+
+		this.public.mesh = mesh;
 
 	}.bind(this);
 
@@ -244,6 +246,7 @@ THREE.ShaderStep = function(width, height){
 
 	/**
 	 * Swap buffers because you can't read and write to same buffer
+	 * @private
 	 */
 	this.swap = function(){
 

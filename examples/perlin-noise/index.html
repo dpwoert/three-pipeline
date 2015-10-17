@@ -226,12 +226,16 @@
 				vec4 transPos = newPos;
 				transPos.x = transPos.x * 2.0 - 1.0;
 				transPos.y = transPos.y * 2.0 - 1.0;
-				// transPos.z = transPos.z * -2.0;
-				transPos.z = 0.0;
+				transPos.z = transPos.z * 2.0 - 1.0;
+				// transPos.z = 0.1;
 
-				gl_Position = projectionMatrix * modelViewMatrix * vec4(transPos);
+				// transPos = vec4(0.0, 0.0, 0.0, 1.0);
+				gl_Position = projectionMatrix * modelViewMatrix * transPos;
+				// gl_Position = transPos;
 
 				gl_PointSize = 0.2 + (2.0 * newPos.z);
+
+				// gl_PointSize = 2.0;
 
 				v_pos = newPos.xyz;
 

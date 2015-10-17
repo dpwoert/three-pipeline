@@ -24,13 +24,16 @@ var startParticles = function(){
 
 	//setup scene
 	var scene = new THREE.Scene();
-	camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 0, 1 );
+	camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 200 );
+	camera.lookAt(new THREE.Vector3(0,0,50));
+	console.log(camera);
 
 	// create controls
-	controls = new THREE.OrbitControls( render._camera, renderer.domElement );
+	controls = new THREE.OrbitControls( camera, renderer.domElement );
 	controls.enableDamping = true;
-	controls.dampingFactor = 0.25;
+	// controls.dampingFactor = 0.25;
 	controls.enableZoom = true;
+	// controls.autoRotate = true;
 
 	//create particles
 	var size = width;
@@ -75,14 +78,12 @@ var startParticles = function(){
 		.shader('vertex', document.getElementById('simpleVertex').textContent )
 		.shader('fragment', document.getElementById('positionFragment').textContent )
 
-	// position.camera = camera;
-
 	render
-		// .camera(camera)
 		.link(position, 'texPosition')
 		.link(velocity, 'texVelocity')
 		.geometry(geometry)
 		.mesh(THREE.PointCloud)
+		.camera(camera)
 		.shader('vertex', document.getElementById('renderVertex').textContent )
 		.shader('fragment', document.getElementById('renderFragment').textContent )
 
@@ -107,7 +108,13 @@ var startParticles = function(){
 
 	//make pipeline
 	renderManager
-		.pipe('controls', controls.update)
+		.pipe('init', function(){
+			// position.public.mesh.rotation.y += 0.1;
+			position.public.mesh.frustumCulled = false;
+			// debugger
+			camera.position.z = -1;
+		})
+		.pipe('controls', controls.update.bind(controls))
 		.pipe('perlinShader', perlin)
 		.pipe('velocity', velocity)
 		.pipe('position', position)
@@ -115,8 +122,7 @@ var startParticles = function(){
 		.pipe('save', copy)
 		.start();
 
-	window.CAMERA = position.camera;
-	console.log(position)
+	window.CAMERA = camera;
 
 };
 
