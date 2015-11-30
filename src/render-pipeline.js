@@ -41,7 +41,7 @@ THREE.renderPipeline = function(renderer){
 			}
 		};
 
-		if(step instanceof THREE.ShaderStep){
+		if(step instanceof THREE.ShaderStep || step instanceof THREE.ProcessStep){
 			_process.create = step.create;
 			_process.render = step.render;
 		}

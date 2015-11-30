@@ -13,6 +13,7 @@
 		<!-- render pipeline library -->
 		<script src="../../src/shader-step.js"></script>
 		<script src="../../src/render-pipeline.js"></script>
+		<script src="../../src/process-step.js"></script>
 
 		<!-- demo javascript -->
 		<script src="demo.js"></script>
@@ -157,14 +158,21 @@
 				vec3 applied = current - 0.5;
 
 				//apply drag
-				applied = applied * 0.7;
+				applied = applied * 0.8;
 
 				//force to real word values
 				force = (force - 0.5) * 0.075;
 
 				//apply force
 				applied = applied + force;
+
+				//drag
+				applied *= 0.7;
+
+				//transform back to float
 				applied = applied + 0.5;
+
+				applied = clamp(applied, 0.0, 1.0);
 
 				//save force
 				gl_FragColor = vec4(applied, 1.0);
@@ -179,6 +187,7 @@
 			uniform sampler2D texVelocity;
 			uniform sampler2D texPerlin;
 			uniform vec2 u_resolution;
+			uniform float u_time;
 			uniform float speed;
 
 			varying vec2 vUv;
@@ -188,20 +197,24 @@
 				vec4 current = texture2D( texData, vUv );
 				vec3 velocity = texture2D( texVelocity, current.xy ).xyz;
 
+
 				// velocity = velocity * 2.0 - 1.0;
 				velocity = velocity - 0.5;
+
+				//apply scaling to velocities
 				velocity = velocity * 0.0075;
 
 				//apply velocity
-				vec4 newPos = current + vec4(velocity, 0.0);
+				vec4 newPos = current + vec4(velocity, 1.0);
 
 				//reborn when dead
-				if(length(velocity) < 0.0001){
-					// newPos = texture2D( texPerlin, vUv );
+				if( (distance(current, newPos) < 0.001) && u_time > 10.0 ){
+					newPos = texture2D( texPerlin, vUv ).zxyw;
 				}
 
-				if( newPos.x > 1.0 || newPos.x < 0.0 || newPos.y > 1.0 || newPos.y < 0.0 ){
-					newPos = texture2D( texPerlin, vUv );
+				//die when crossing edges
+				if( newPos.x >= 1.0 || newPos.x <= 0.0 || newPos.y >= 1.0 || newPos.y <= 0.0 || newPos.z <= 0.0 || newPos.z >= 1.0 ){
+					newPos = texture2D( texPerlin, vUv ).zxyw;
 				}
 
 				gl_FragColor = newPos;
@@ -215,29 +228,27 @@
 			uniform sampler2D texPosition;
 			uniform vec2 u_resolution;
 
-			varying vec3 v_pos;
-
 			void main() {
 
-				vec4 newPos = texture2D(texPosition, position.xy);
+				vec3 newPos = texture2D(texPosition, position.xy).xyz;
 
 				// newPos.z = newPos.z - 0.5;
 				// vec4 transPos = newPos * 512.0 - 256.0;
-				vec4 transPos = newPos;
+				vec3 transPos = newPos;
 				transPos.x = transPos.x * 2.0 - 1.0;
 				transPos.y = transPos.y * 2.0 - 1.0;
 				transPos.z = transPos.z * 2.0 - 1.0;
-				// transPos.z = 0.1;
 
-				// transPos = vec4(0.0, 0.0, 0.0, 1.0);
-				gl_Position = projectionMatrix * modelViewMatrix * transPos;
-				// gl_Position = transPos;
+				transPos.xy *= 50.0;
+				transPos.z *= 50.0;
 
-				gl_PointSize = 0.2 + (2.0 * newPos.z);
+				gl_Position = projectionMatrix * modelViewMatrix * vec4( transPos, 1.0 );
 
-				// gl_PointSize = 2.0;
+				float size = 20.0;
+				float scale = 2.0;
 
-				v_pos = newPos.xyz;
+				vec4 mvPosition = modelViewMatrix * vec4( transPos, 1.0 );
+				gl_PointSize = size * ( scale / length( mvPosition.xyz ) );
 
 			}
 
@@ -246,15 +257,18 @@
 		<script id="renderFragment" type="x-shader/x-vertex">
 
 			uniform sampler2D texPosition;
-			uniform sampler2D texVelocity;
-
-			varying vec3 v_pos;
 
 			void main() {
 
-				// vec4 color = texture2D( texVelocity, v_pos / 512.0 );
-				// gl_FragColor = vec4((length(color) / 2.0), 0.0, 0.0, 0.1);
-				gl_FragColor = vec4(1.0,1.0-v_pos.z,0.0,0.1);
+				vec2 coord = gl_PointCoord - vec2(0.5);  //from [0,1] to [-0.5,0.5]
+				float alpha = length(coord);
+
+				//make circle
+				if(alpha > 0.5)
+					discard;
+
+				// gl_FragColor = mapping;
+				gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0 - alpha);
 
 			}
 

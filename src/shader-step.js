@@ -364,6 +364,7 @@ THREE.ShaderStep = function(width, height){
 	 */
 	this.runOnce = function(run){
 		this.process.runOnce = run || true;
+		this.process.active = run || true;
 		return this;
 	};
 
@@ -410,4 +411,4 @@ THREE.ShaderStep = function(width, height){
 
 	}.bind(this);
 
-}
+};

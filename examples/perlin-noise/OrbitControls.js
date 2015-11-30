@@ -75,7 +75,6 @@
 		this.rotateLeft = function ( angle ) {
 
 			thetaDelta -= angle;
-			console.log(thetaDelta)
 
 		};
 
